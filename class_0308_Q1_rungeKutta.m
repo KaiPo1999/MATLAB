@@ -1,0 +1,106 @@
+clear
+A=[ 1,2,1;
+    0,1,2;
+    3,1,1];
+B = [0;1;1];
+
+
+t = linspace(0,10,2001);
+DT=0.01;
+X(1,:)=randn(1,3);
+
+K=myACKK(A,B);
+
+for i=1:2001
+    k_1  = my_f(X(i,:),t(i));
+    x_k2 = X(i,:)+k_1*DT/2;
+    k_2  = my_f(x_k2,t(i)+DT/2);
+    X_k3 = X(i,:)+k_2*DT/2;
+    k_3  = my_f(X_k3,t(i)+DT/2);
+    x_k4 = X(i,:)+k_3*DT;
+    k_4  = my_f(x_k4,t(i)+DT);
+
+    delta_f = 1/6*(k_1+2*k_2+2*k_3+k_4);
+    %x(k+1)=x(k)+f(x(k))DT
+
+    temp = X(i,:)+delta_f*DT;
+    X(i+1,:)=temp;
+    %x(k+1)=x(k)+(Ax(k)+Bu(k))DT  where u[k]=KX[k]
+    tempU=B*K*X(i,:)';
+    %TempB=B*tempU;
+    tempU=tempU'*DT;
+    X(i+1,:)=X(i+1,:)+tempU;
+    % noise x(k+1)=x(k)+(Ax(k)+Bu(k)+v(k))DT
+    phi = pi/6;
+    v = [cos(6*pi*t(i)+phi),-sin(6*pi*t(i)+phi),0];
+    temp_noise=v*DT;
+    X(i+1,:)=X(i+1,:)+temp_noise;
+
+end
+
+
+%老師的code
+% for i=1:2001
+%     k_1=my_f(X(i,:),t(i));
+% %     temp=X(i,:)'+(A*X(i,:)')*DT;
+%     x_k2=X(i,:)+k_1*DT/2;
+%     k_2=my_f(x_k2,t(i)+DT/2);
+%     x_k3=X(i,:)+k_2*DT/2;
+%     k_3=my_f(x_k3,t(i)+DT/2);
+%     x_k4=X(i,:)+k_3*DT;
+%     k_4=my_f(x_k4,t(i)+DT);
+%      
+%     delta_f=1/6*(k_1+2*k_2+2*k_3+k_4);
+%     %% x(k+1)=x(k)+f(x(k))DT
+%     temp=X(i,:)+delta_f*DT;
+%     X(i+1,:)=temp;
+%     %% x(k+1)=x(k)+(Ax(k)+Bu(k))DT where u[k]=KX[k]
+%     tempU=B*K*X(i,:)';
+%     tempU=tempU'*DT;
+%     X(i+1,:)=X(i+1,:)+tempU;
+%     %% noise x(k+1)=x(k)+(Ax(k)+Bu(k)+v(k))DT
+%     phi=pi/6;
+%     v=[cos(6*pi*t(i)+phi),-sin(6*pi*t(i)+phi),0];
+%     temp_noise=v*DT;
+%     X(i+1,:)=X(i+1,:)+temp_noise;
+% end
+
+figure(1)
+subplot(3,1,1)
+plot(X(:,1),'r')
+subplot(3,1,2)
+plot(X(:,2),'g')
+subplot(3,1,3)
+plot(X(:,3),'b')
+
+
+
+function [output] = my_f(X_now,t_now)
+qq = t_now;
+%output would be 1x3
+%注意陣列方向
+%f(x,t)=At+v
+
+% A=[ 1,2,1;
+%     0,1,2;
+%     3,1,1];
+
+% phi = pi/6;
+% v = [cos(6*pi*t_now+phi),-sin(6*pi*t_now+phi),0]';
+A = diag([-1,-2,-10]);
+
+x = X_now';
+% f_trans = A*x+v;
+f_trans = A*x;
+output = f_trans';
+
+end
+
+function [K] = myACKK(A,B)
+Omega=[B,A*B,A^2*B];
+iOmega=inv(Omega);
+alphfa_A=A^3+35*A^2+350*A+1000*eye(3);
+Temp=iOmega;
+q=[0,1];
+K=-iOmega(end,:)*alphfa_A;
+end
