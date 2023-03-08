@@ -27,6 +27,7 @@ end
 function [output] = my_f(X_now,t_now)
 
 %output would be 1x3
+%注意陣列方向
 %f(x,t)=At+v
 
 % A=[ 1,2,1;
